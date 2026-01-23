@@ -1,0 +1,202 @@
+# Ontology Configuration Template
+#
+# Copy this file to ~/.ds_catalog/ontology_config.toml and customize
+# for your database schema.
+#
+# This configuration defines how the ontology builder classifies tables,
+# columns, and relationships in the JSON-LD knowledge graph.
+
+[ontology]
+version = "1.0"
+namespace = "app"  # Change to match your application
+base_uri = "https://example.com/ontology#"
+
+# JSON-LD context prefixes
+[ontology.context]
+rdfs = "http://www.w3.org/2000/01/rdf-schema#"
+xsd = "http://www.w3.org/2001/XMLSchema#"
+app = "https://example.com/ontology#"
+schema = "http://schema.org/"
+
+# =============================================================================
+# Domain Classification Rules
+# =============================================================================
+# Tables are classified into business domains. Rules are evaluated by priority.
+# Pattern-only rules (no database_affinity) are checked first across all databases.
+# First matching rule wins.
+
+# --- PATTERN-ONLY DOMAINS (checked first) ---
+
+[[domains]]
+id = "AuditDomain"
+label = "Audit Domain"
+description = "Audit trails, history tables, and logs"
+database_affinity = []  # Matches ANY database
+table_patterns = ["*History", "*Log", "Audit*", "Error*", "*Archive"]
+priority = 1
+
+[[domains]]
+id = "ReferenceDomain"
+label = "Reference Domain"
+description = "Reference data, lookups, and configuration tables"
+database_affinity = []
+table_patterns = ["*Type", "*Status", "*Code", "*Config", "*Lookup"]
+priority = 2
+
+# --- DATABASE-SPECIFIC DOMAINS ---
+
+# Example: Customer domain for tables in a "Customers" database
+# [[domains]]
+# id = "CustomerDomain"
+# label = "Customer Domain"
+# description = "Customer and account entities"
+# database_affinity = ["Customers", "CRM"]
+# table_patterns = ["Customer", "Account", "Contact", "Address"]
+# priority = 10
+
+# Example: Order domain
+# [[domains]]
+# id = "OrderDomain"
+# label = "Order Domain"
+# description = "Order processing entities"
+# database_affinity = ["Orders", "Sales"]
+# table_patterns = ["Order", "OrderLine", "Transaction"]
+# priority = 11
+
+# Fallback for unclassified tables
+[[domains]]
+id = "UncategorizedDomain"
+label = "Uncategorized"
+description = "Tables not matching other domain rules - requires human review"
+database_affinity = []
+table_patterns = ["*"]
+is_fallback = true
+priority = 99
+
+# =============================================================================
+# Semantic Role Classification
+# =============================================================================
+# Columns are classified by semantic role based on naming patterns.
+
+[[semantic_roles]]
+id = "Identifier"
+label = "Identifier"
+patterns = ["*ID", "*IDSeq", "*Id", "*Code", "*Key", "*Guid", "*UUID"]
+priority = 1
+
+[[semantic_roles]]
+id = "Timestamp"
+label = "Timestamp"
+patterns = ["*Date", "*Time", "*At", "*On", "Created*", "Updated*", "Modified*"]
+data_types = ["datetime", "datetime2", "date", "timestamp"]
+priority = 2
+
+[[semantic_roles]]
+id = "Monetary"
+label = "Monetary"
+patterns = ["*Amount", "*Price", "*Cost", "*Fee", "*Charge", "*Total", "*Revenue"]
+data_types = ["money", "decimal", "numeric"]
+priority = 3
+
+[[semantic_roles]]
+id = "Quantity"
+label = "Quantity"
+patterns = ["*Count", "*Qty", "*Quantity", "*Number", "*Units"]
+data_types = ["int", "bigint", "smallint"]
+priority = 4
+
+[[semantic_roles]]
+id = "BooleanFlag"
+label = "Boolean Flag"
+patterns = ["Is*", "Has*", "*Flag", "*Enabled", "*Active"]
+data_types = ["bit", "boolean", "tinyint"]
+priority = 5
+
+[[semantic_roles]]
+id = "StatusIndicator"
+label = "Status Indicator"
+patterns = ["*Status", "*State", "*Stage"]
+priority = 6
+
+[[semantic_roles]]
+id = "Percentage"
+label = "Percentage"
+patterns = ["*Percent", "*Pct", "*Rate", "*Ratio"]
+priority = 7
+
+[[semantic_roles]]
+id = "Description"
+label = "Description"
+patterns = ["*Name", "*Desc", "*Description", "*Title", "*Label", "*Comment", "*Notes"]
+data_types = ["varchar", "nvarchar", "text", "ntext"]
+priority = 8
+
+# Fallback
+[[semantic_roles]]
+id = "Unclassified"
+label = "Unclassified"
+patterns = ["*"]
+is_fallback = true
+priority = 99
+
+# =============================================================================
+# Business Metrics
+# =============================================================================
+# Define business metrics derived from the data model.
+# These are included in the ontology for documentation and agent guidance.
+
+# Example metric
+# [[metrics]]
+# id = "churn_rate"
+# label = "Customer Churn Rate"
+# description = "Percentage of customers who cancelled in the observation period"
+# formula = "COUNT(churned_customers) / COUNT(total_customers)"
+# source_columns = ["Orders.dbo.OrderItem.StatusCode", "Customers.dbo.Company.IDSeq"]
+# conditions = [
+#     { field = "StatusCode", operator = "==", value = "'CNCL'" }
+# ]
+# observation_window_days = 365
+# notes = "Excludes administrative cancellations"
+
+# =============================================================================
+# Relationship Type Mappings
+# =============================================================================
+# Inferred relationship types based on FK column naming patterns.
+
+[[relationship_types]]
+pattern = "*CustomerID*"
+type = "belongsToCustomer"
+inverse = "hasCustomer"
+
+[[relationship_types]]
+pattern = "*OrderID*"
+type = "partOfOrder"
+inverse = "hasOrderItem"
+
+# Default for unmatched FKs
+[[relationship_types]]
+pattern = "*ID*"
+type = "references"
+inverse = "referencedBy"
+
+# =============================================================================
+# Core Entity Definitions
+# =============================================================================
+# Key entities that form the backbone of the domain model.
+
+# Example core entity
+# [[core_entities]]
+# table = "Customers.dbo.Customer"
+# label = "Customer"
+# description = "Customer organization entity"
+# is_aggregate_root = true
+# key_column = "CustomerID"
+
+# Example child entity
+# [[core_entities]]
+# table = "Orders.dbo.Order"
+# label = "Order"
+# description = "Customer order"
+# is_aggregate_root = true
+# key_column = "OrderID"
+# belongs_to = "Customers.dbo.Customer"

@@ -1,0 +1,41 @@
+# Data Catalog Target Configuration
+#
+# Copy this file to ~/.ds_catalog/targets.toml and customize.
+#
+# SECURITY: Store actual credentials in environment variables, not in this file.
+# Reference env vars by name only (e.g., host_env = "DB_HOST")
+
+[targets.primary]
+name = "Primary Database Server"
+type = "sqlserver"
+host_env = "DB_HOST"                # Environment variable containing hostname
+user_env = "DB_USER"                # Environment variable containing username
+password_env = "DB_PASSWORD"        # Environment variable containing password
+include_databases = ["*"]           # "*" = scan all accessible, or list specific DBs
+exclude_schemas = ["sys", "INFORMATION_SCHEMA"]
+
+# Example: Additional target
+# [targets.warehouse]
+# name = "Data Warehouse"
+# type = "sqlserver"
+# host_env = "DW_HOST"
+# user_env = "DW_USER"
+# password_env = "DW_PASSWORD"
+# include_databases = ["Analytics", "Reporting"]
+# exclude_schemas = ["sys", "INFORMATION_SCHEMA"]
+
+[settings]
+# Scan depth options:
+# - "metadata": Schema only (fast, default)
+# - "profile": Adds row counts, null rates, distinct counts
+default_scan_depth = "metadata"
+
+# Cache time-to-live in days
+# Catalog older than this will trigger refresh suggestions
+cache_ttl_days = 7
+
+# Maximum tables to scan per database (0 = unlimited)
+max_tables_per_db = 0
+
+# Parallelism for multi-database scans
+parallel_scans = 4
