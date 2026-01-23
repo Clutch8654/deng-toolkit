@@ -99,7 +99,7 @@ Ontology built successfully!
 ## Configuration
 
 The ontology is built using rules defined in:
-`~/.deng-toolkit/scripts/ontology_config.toml`
+`~/.ds_catalog/ontology_config.toml`
 
 This file contains:
 - **Domain classification rules** - Map tables to business domains
@@ -159,15 +159,15 @@ This file contains:
 ## Troubleshooting
 
 **"Config not found" error:**
-- Ensure `~/.deng-toolkit/scripts/ontology_config.toml` exists
-- The config file is created when you first set up the ds_catalog
+- Ensure `~/.ds_catalog/ontology_config.toml` exists
+- Copy from template: `cp ~/.deng-toolkit/templates/ontology_config.toml.example ~/.ds_catalog/ontology_config.toml`
 
 **"Catalog not found" error:**
 - Run `/deng-catalog-refresh` first
 - Check that `~/.ds_catalog/metadata.parquet` exists
 
 **Empty domains:**
-- Review domain classification rules in `ontology_config.toml`
+- Review domain classification rules in `~/.ds_catalog/ontology_config.toml`
 - Check that database names match the `database_affinity` settings
 
 ## Usage Examples

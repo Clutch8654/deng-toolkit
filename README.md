@@ -6,7 +6,7 @@ Data engineering toolkit for Claude Code - provides skills and scripts for datab
 
 ```bash
 # Clone the repository
-git clone https://github.com/<org>/deng-toolkit.git ~/.deng-toolkit
+git clone https://github.com/Clutch8654/deng-toolkit.git ~/.deng-toolkit
 
 # Install skills (creates symlinks to ~/.claude/skills/)
 ~/.deng-toolkit/setup.sh
