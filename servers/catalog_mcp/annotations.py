@@ -61,10 +61,11 @@ def _atomic_write(path: Path, content: str) -> None:
     fd, tmp_path = tempfile.mkstemp(dir=path.parent, suffix=".tmp")
     try:
         os.write(fd, content.encode())
+    finally:
         os.close(fd)
+    try:
         os.replace(tmp_path, path)
     except Exception:
-        os.close(fd)
         os.unlink(tmp_path)
         raise
 
