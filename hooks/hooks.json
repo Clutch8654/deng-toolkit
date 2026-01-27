@@ -1,0 +1,28 @@
+{
+  "hooks": [
+    {
+      "event": "PostToolUse",
+      "matcher": {
+        "tool_name": "Bash",
+        "command_pattern": "catalog_refresh\\.py"
+      },
+      "action": {
+        "type": "command",
+        "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/catalog-updated.sh"
+      },
+      "description": "Notify when catalog is refreshed"
+    },
+    {
+      "event": "PostToolUse",
+      "matcher": {
+        "tool_name": "Bash",
+        "command_pattern": "build_ontology\\.py"
+      },
+      "action": {
+        "type": "command",
+        "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/ontology-updated.sh"
+      },
+      "description": "Notify when ontology is rebuilt"
+    }
+  ]
+}

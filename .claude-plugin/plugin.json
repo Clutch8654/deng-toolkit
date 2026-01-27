@@ -1,0 +1,55 @@
+{
+  "name": "deng-toolkit",
+  "version": "1.0.0",
+  "description": "Data engineering toolkit for database metadata management, ontology building, and SQL pattern analysis",
+  "author": "Jensen Carlsen",
+  "homepage": "https://github.com/Clutch8654/deng-toolkit",
+  "components": {
+    "commands": [
+      {
+        "name": "deng-catalog-refresh",
+        "description": "Rebuild database metadata catalog from SQL Server",
+        "file": "commands/deng-catalog-refresh.md"
+      },
+      {
+        "name": "deng-find-data",
+        "description": "Fast keyword search for tables/columns in the catalog",
+        "file": "commands/deng-find-data.md"
+      },
+      {
+        "name": "deng-build-ontology",
+        "description": "Build JSON-LD knowledge graph from metadata",
+        "file": "commands/deng-build-ontology.md"
+      },
+      {
+        "name": "deng-analyze-procedures",
+        "description": "Extract SQL patterns from stored procedures",
+        "file": "commands/deng-analyze-procedures.md"
+      },
+      {
+        "name": "deng-catalog-status",
+        "description": "Show catalog age, statistics, and health",
+        "file": "commands/deng-catalog-status.md"
+      },
+      {
+        "name": "deng-catalog-sync",
+        "description": "Sync catalog changes with team via git",
+        "file": "commands/deng-catalog-sync.md"
+      }
+    ],
+    "hooks": {
+      "file": "hooks/hooks.json"
+    },
+    "mcpServers": {
+      "file": ".mcp.json"
+    }
+  },
+  "installation": {
+    "scope": "global",
+    "instructions": "Clone to ~/.deng-toolkit and run setup.sh"
+  },
+  "requirements": {
+    "python": ">=3.11",
+    "tools": ["uv"]
+  }
+}
