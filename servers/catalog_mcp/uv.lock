@@ -48,6 +48,11 @@ test = [
     { name = "pytest-asyncio" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "mcp", specifier = ">=1.2.0" },
@@ -56,6 +61,9 @@ requires-dist = [
     { name = "pytest-asyncio", marker = "extra == 'test'", specifier = ">=0.24" },
 ]
 provides-extras = ["test"]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest", specifier = ">=9.0.2" }]
 
 [[package]]
 name = "certifi"

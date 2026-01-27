@@ -204,17 +204,59 @@ async def list_tools() -> list[Tool]:
             description="Get catalog age and statistics",
             inputSchema={"type": "object", "properties": {}},
         ),
+        Tool(
+            name="get_annotations",
+            description="Get catalog annotations (notes, quality flags) for tables. Merges all team members' annotations.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "target": {
+                        "type": "string",
+                        "description": "Filter by table (Database.Schema.Table). Omit for all annotations.",
+                    },
+                },
+            },
+        ),
+        Tool(
+            name="add_annotation",
+            description="Add annotation to a table (note, quality_flag, or deprecation)",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "target": {
+                        "type": "string",
+                        "description": "Table identifier (Database.Schema.Table)",
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": ["note", "quality_flag", "deprecation"],
+                        "description": "Annotation type",
+                    },
+                    "content": {
+                        "type": "string",
+                        "description": "Annotation content. For quality_flag: TRUSTED, STALE, INCOMPLETE, or EXPERIMENTAL",
+                    },
+                },
+                "required": ["target", "type", "content"],
+            },
+        ),
     ]
 
 
 @app.call_tool()
 async def call_tool(name: str, arguments: dict) -> list[TextContent]:
     """Dispatch tool calls to handlers."""
+    from .annotations import get_annotations, add_annotation
+
     handlers = {
         "search_catalog": search_catalog,
         "get_table_details": get_table_details,
         "find_join_paths": find_join_paths,
         "get_catalog_status": get_catalog_status,
+        "get_annotations": lambda **args: get_annotations(args.get("target")),
+        "add_annotation": lambda **args: add_annotation(
+            args["target"], args["type"], args["content"]
+        ),
     }
 
     handler = handlers.get(name)

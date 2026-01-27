@@ -1,6 +1,6 @@
 # Catalog Sync
 
-Synchronizes catalog changes with your team via git. The catalog at `~/.ds_catalog/` is a git repository that can be shared.
+Synchronizes catalog and annotations with your team via git.
 
 ## Usage
 
@@ -9,39 +9,57 @@ Synchronizes catalog changes with your team via git. The catalog at `~/.ds_catal
 ```
 
 **Options:**
-- `--push` - Push changes to remote after committing
+- `--push` - Push your annotation changes after pulling
 
 ## Process
 
-### Step 1: Check Git Status
+### Step 1: Pull Latest
 
 ```bash
-cd ~/.ds_catalog && git status
+cd ~/.ds_catalog && git pull --rebase
 ```
 
-If `~/.ds_catalog/` is not a git repository, initialize it:
+This gets:
+- Latest `metadata.parquet` from maintainers
+- All team members' annotation files (`annotations/*.json`)
+
+### Step 2: Push (if --push flag)
 
 ```bash
-cd ~/.ds_catalog && git init
+cd ~/.ds_catalog && git add annotations/*.json && git commit -m "Annotation update" && git push
 ```
 
-### Step 2: Stage Changes
+## What Gets Synced
+
+| File | Direction | Notes |
+|------|-----------|-------|
+| `metadata.parquet` | Pull only | Maintainers push, users pull |
+| `annotations/*.json` | Both | Per-user files, no conflicts |
+| `ontology.jsonld` | Pull only | Knowledge graph |
+| `targets.toml` | **Never** | Contains connection info |
+| `.env` | **Never** | Credentials |
+
+## User Workflow
 
 ```bash
-cd ~/.ds_catalog && git add -A
+# 1. Get team's latest annotations
+/deng-catalog-sync
+
+# 2. Add your annotations via MCP tools
+# (automatically writes to annotations/{your-username}.json)
+
+# 3. Share your annotations with the team
+/deng-catalog-sync --push
 ```
 
-### Step 3: Commit
+## Annotation Files
 
-```bash
-cd ~/.ds_catalog && git commit -m "Catalog update $(date +%Y-%m-%d)"
-```
+Each team member has their own annotation file:
+- `annotations/jensen.json` - Jensen's notes and flags
+- `annotations/alice.json` - Alice's notes and flags
+- etc.
 
-### Step 4: Push (if --push)
-
-```bash
-cd ~/.ds_catalog && git push origin main
-```
+**No merge conflicts!** Each user writes only to their own file. The MCP server merges all files at query time.
 
 ## Team Onboarding
 
@@ -52,6 +70,7 @@ cd ~/.ds_catalog && git push origin main
    ```bash
    cd ~/.ds_catalog
    git init
+   mkdir -p annotations
    git remote add origin <your-repo-url>
    git add -A
    git commit -m "Initial catalog"
@@ -70,30 +89,7 @@ cd ~/.ds_catalog && git push origin main
    /deng-catalog-status
    ```
 
-### Updating Your Catalog
-
-```bash
-cd ~/.ds_catalog && git pull origin main
-```
-
-Or use the MCP tool if available:
-```
-# Pull latest from remote
-cd ~/.ds_catalog && git pull
-```
-
-## What Gets Synced
-
-| File | Synced | Notes |
-|------|--------|-------|
-| `metadata.parquet` | Yes | Core catalog data |
-| `ontology.jsonld` | Yes | Knowledge graph |
-| `ontology_config.toml` | Yes | Team-shared config |
-| `targets.toml` | **No** | Contains connection info |
-| `procedures.parquet` | Yes | Procedure metadata |
-| `.env` | **No** | Credentials |
-
-### Recommended .gitignore
+## Recommended .gitignore
 
 Create `~/.ds_catalog/.gitignore`:
 ```
@@ -109,14 +105,6 @@ targets.toml
 .DS_Store
 ```
 
-## Conflict Resolution
-
-If you get merge conflicts:
-
-1. For `.parquet` files: Accept the newer version (by date)
-2. For `.toml` config: Merge manually
-3. For `.jsonld`: Rebuild with `/deng-build-ontology`
-
 ## Alternative: OneDrive Snapshot
 
 For teams without git access, create a shareable snapshot:
@@ -125,8 +113,8 @@ For teams without git access, create a shareable snapshot:
 # Create timestamped snapshot
 mkdir -p ~/OneDrive/DataCatalog/$(date +%Y%m%d)
 cp ~/.ds_catalog/metadata.parquet ~/OneDrive/DataCatalog/$(date +%Y%m%d)/
+cp -r ~/.ds_catalog/annotations ~/OneDrive/DataCatalog/$(date +%Y%m%d)/
 cp ~/.ds_catalog/ontology.jsonld ~/OneDrive/DataCatalog/$(date +%Y%m%d)/
-cp ~/.ds_catalog/ONTOLOGY_SUMMARY.md ~/OneDrive/DataCatalog/$(date +%Y%m%d)/
 ```
 
 ## Related Commands
@@ -135,3 +123,4 @@ cp ~/.ds_catalog/ONTOLOGY_SUMMARY.md ~/OneDrive/DataCatalog/$(date +%Y%m%d)/
 |---------|---------|
 | `/deng-catalog-refresh` | Update the catalog from databases |
 | `/deng-catalog-status` | Check catalog health |
+| `/deng-find-data` | Search the catalog |
