@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "deng-catalog": {
+      "command": "uv",
+      "args": ["run", "--directory", "${CLAUDE_PLUGIN_ROOT}/servers/catalog_mcp", "python", "-m", "server"]
+    }
+  }
+}

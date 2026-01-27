@@ -1,6 +1,6 @@
 # deng-toolkit
 
-Data engineering toolkit for Claude Code - provides skills and scripts for database metadata management, ontology building, and SQL pattern analysis.
+Data engineering toolkit for Claude Code - a plugin providing commands and MCP tools for database metadata management, ontology building, and SQL pattern analysis.
 
 ## Quick Start
 
@@ -8,36 +8,37 @@ Data engineering toolkit for Claude Code - provides skills and scripts for datab
 # Clone the repository
 git clone https://github.com/Clutch8654/deng-toolkit.git ~/.deng-toolkit
 
-# Install skills (creates symlinks to ~/.claude/skills/)
+# Install the plugin
 ~/.deng-toolkit/setup.sh
-
-# Verify installation
-ls -la ~/.claude/skills/deng-*
 ```
 
-## Skills
+## Commands
 
-| Skill | Description |
-|-------|-------------|
+| Command | Description |
+|---------|-------------|
 | `/deng-catalog-refresh` | Rebuild database metadata catalog from SQL Server |
 | `/deng-find-data` | Fast keyword search for tables/columns |
 | `/deng-build-ontology` | Build JSON-LD knowledge graph from metadata |
 | `/deng-analyze-procedures` | Extract SQL patterns from stored procedures |
-| `/deng-new` | Scaffold a new data science project |
+| `/deng-catalog-status` | Check catalog freshness and statistics |
+| `/deng-catalog-sync` | Sync catalog with team git repository |
+
+## MCP Tools
+
+The plugin exposes an MCP server with these tools:
+
+| Tool | Description |
+|------|-------------|
+| `search_catalog` | Search catalog by keywords |
+| `get_table_details` | Get full details for a specific table |
+| `find_join_paths` | Find FK relationships for a table |
+| `get_catalog_status` | Get catalog age and statistics |
 
 ## Requirements
 
 - Python 3.11+
 - [uv](https://docs.astral.sh/uv/) for dependency management
 - Claude Code CLI
-
-### Python Dependencies
-
-Scripts are run via `uv run` with inline dependencies:
-
-```bash
-uv run --with pymssql --with polars --with python-dotenv python <script>
-```
 
 ## Configuration
 
@@ -79,48 +80,69 @@ Copy the template and customize:
 cp ~/.deng-toolkit/templates/ontology_config.toml.example ~/.ds_catalog/ontology_config.toml
 ```
 
-Edit to define:
-- Business domain classifications
-- Semantic column roles
-- Business metric definitions
-- Relationship type mappings
-
 ## Directory Structure
 
 ```
 ~/.deng-toolkit/
-├── scripts/           # Python scripts for data operations
+├── .claude-plugin/
+│   └── plugin.json         # Plugin manifest
+├── .mcp.json               # MCP server configuration
+├── commands/               # Slash command definitions
+│   ├── deng-catalog-refresh.md
+│   ├── deng-find-data.md
+│   ├── deng-build-ontology.md
+│   ├── deng-analyze-procedures.md
+│   ├── deng-catalog-status.md
+│   └── deng-catalog-sync.md
+├── servers/
+│   └── catalog_mcp/        # MCP server
+│       ├── server.py       # 4 MCP tools
+│       └── pyproject.toml
+├── hooks/
+│   ├── hooks.json          # PostToolUse hooks
+│   └── scripts/            # Hook scripts
+├── scripts/                # Python scripts for data operations
 │   ├── catalog_refresh.py
 │   ├── catalog_query.py
-│   ├── catalog_snapshot.py
 │   ├── build_ontology.py
-│   ├── analyze_procedures.py
-│   ├── generate_review_excel.py
-│   ├── apply_review_feedback.py
-│   └── adapters/      # Database-specific adapters
-├── skills/            # Claude Code skill definitions
-│   ├── deng-catalog-refresh/
-│   ├── deng-find-data/
-│   ├── deng-build-ontology/
-│   ├── deng-analyze-procedures/
-│   └── deng-new/
-├── templates/         # Configuration templates
-├── setup.sh           # Installation script
-├── uninstall.sh       # Removal script
+│   └── analyze_procedures.py
+├── templates/              # Configuration templates
+├── setup.sh                # Installation script
 └── README.md
 ```
 
-## Uninstall
+## Team Sharing
+
+The data catalog at `~/.ds_catalog/` is initialized as a git repository during setup. To share with your team:
+
+### First-Time Setup (Team Lead)
 
 ```bash
-# Remove skill symlinks
-~/.deng-toolkit/uninstall.sh
-
-# Optionally remove the toolkit entirely
-rm -rf ~/.deng-toolkit
+cd ~/.ds_catalog
+git remote add origin <your-repo-url>
+git add -A
+git commit -m "Initial catalog"
+git push -u origin main
 ```
 
-**Note:** Uninstalling only removes symlinks that point to this toolkit. Your data catalog at `~/.ds_catalog/` is preserved.
+### Joining the Team
+
+```bash
+# Clone the shared catalog
+git clone <your-repo-url> ~/.ds_catalog
+
+# Install the toolkit
+git clone https://github.com/Clutch8654/deng-toolkit.git ~/.deng-toolkit
+~/.deng-toolkit/setup.sh
+```
+
+### Syncing Changes
+
+Use the `/deng-catalog-sync` command or manually:
+
+```bash
+cd ~/.ds_catalog && git pull && git add -A && git commit -m "Update" && git push
+```
 
 ## Workflow
 
@@ -131,22 +153,16 @@ rm -rf ~/.deng-toolkit
         ↓
 /deng-build-ontology  →  ontology.jsonld (knowledge graph)
         ↓
-/deng-find-data  →  Query the catalog
+/deng-find-data  →  Query the catalog (or use MCP tools)
 ```
 
-## Separating Toolkit from Data
+## Uninstall
 
-This toolkit is designed to be separate from your data catalog:
+```bash
+claude plugins remove deng-toolkit
+```
 
-| Component | Location | Git Repo |
-|-----------|----------|----------|
-| **Toolkit** (scripts, skills) | `~/.deng-toolkit/` | Public/shareable |
-| **Data Catalog** (parquet, configs) | `~/.ds_catalog/` | Private/org-specific |
-
-This separation allows you to:
-- Share the toolkit without exposing schema metadata
-- Version control the toolkit independently
-- Use the same toolkit with multiple data catalogs
+The data catalog at `~/.ds_catalog/` is preserved.
 
 ## License
 
