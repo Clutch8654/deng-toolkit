@@ -1,7 +1,7 @@
 #!/bin/bash
 # catalog_sync.sh - Sync data catalog to git repository
 #
-# Usage: catalog_sync.sh [--push|--pull|--init|--status]
+# Usage: catalog_sync.sh [--push|--pull|--init|--full|--status]
 #
 # Configuration:
 #   Reads from ~/.deng-toolkit/config.yaml:
