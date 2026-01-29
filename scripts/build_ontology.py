@@ -33,9 +33,10 @@ except ImportError:
 
 import polars as pl
 
+from config import get_catalog_dir
 
-# Default paths - configurable via DENG_CATALOG_DIR env var
-CATALOG_DIR = Path(os.environ.get("DENG_CATALOG_DIR", str(Path.home() / ".ds_catalog")))
+# Default paths - configurable via config.yaml or DENG_CATALOG_DIR env var
+CATALOG_DIR = get_catalog_dir()
 METADATA_PATH = CATALOG_DIR / "metadata.parquet"
 CONFIG_PATH = CATALOG_DIR / "ontology_config.toml"
 OUTPUT_JSONLD_PATH = CATALOG_DIR / "ontology.jsonld"

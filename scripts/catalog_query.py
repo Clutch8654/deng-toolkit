@@ -25,7 +25,9 @@ from pathlib import Path
 
 import polars as pl
 
-CATALOG_DIR = Path(os.environ.get("DENG_CATALOG_DIR", str(Path.home() / ".ds_catalog")))
+from config import get_catalog_dir
+
+CATALOG_DIR = get_catalog_dir()
 METADATA_PATH = CATALOG_DIR / "metadata.parquet"
 LAST_SCAN_PATH = CATALOG_DIR / "last_scan.json"
 

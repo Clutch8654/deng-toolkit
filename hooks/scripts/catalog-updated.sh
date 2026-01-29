@@ -2,7 +2,14 @@
 # Hook: Runs after catalog_refresh.py completes
 # Provides helpful follow-up suggestions
 
-CATALOG_DIR="${DENG_CATALOG_DIR:-$HOME/.ds_catalog}"
+# Read catalog_dir from config.yaml if it exists
+CONFIG_FILE="$HOME/.deng-toolkit/config.yaml"
+if [[ -f "$CONFIG_FILE" ]]; then
+    CATALOG_DIR_CONFIG=$(grep "^catalog_dir:" "$CONFIG_FILE" 2>/dev/null | sed 's/catalog_dir: *//' | sed "s|~|$HOME|" | tr -d '"' | tr -d "'")
+fi
+
+# Environment variable overrides config, config overrides default
+CATALOG_DIR="${DENG_CATALOG_DIR:-${CATALOG_DIR_CONFIG:-$HOME/data-catalog}}"
 
 if [ -f "$CATALOG_DIR/metadata.parquet" ]; then
     echo ""

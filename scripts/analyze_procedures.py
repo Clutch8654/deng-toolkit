@@ -65,7 +65,9 @@ try:
 except ImportError:
     PARSER_AVAILABLE = False
 
-CATALOG_DIR = Path(os.environ.get("DENG_CATALOG_DIR", str(Path.home() / ".ds_catalog")))
+from config import get_catalog_dir
+
+CATALOG_DIR = get_catalog_dir()
 METADATA_PATH = CATALOG_DIR / "metadata.parquet"
 PROCEDURES_PATH = CATALOG_DIR / "procedures.parquet"
 EXECUTION_STATS_PATH = CATALOG_DIR / "execution_stats.parquet"

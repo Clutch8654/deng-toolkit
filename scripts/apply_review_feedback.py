@@ -19,7 +19,9 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-CATALOG_DIR = Path(os.environ.get("DENG_CATALOG_DIR", str(Path.home() / ".ds_catalog")))
+from config import get_catalog_dir
+
+CATALOG_DIR = get_catalog_dir()
 REVIEWS_DIR = CATALOG_DIR / "reviews"
 ONTOLOGY_PATH = CATALOG_DIR / "ontology.jsonld"
 PROCEDURE_ANALYSIS_PATH = CATALOG_DIR / "procedure_analysis.jsonld"
