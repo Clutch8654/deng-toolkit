@@ -206,7 +206,7 @@ NEW_LOCATION="$HOME/data-catalog"
 
 - [x] All existing tests pass (13 MCP tests + 7 config tests)
 - [x] New tests for config loading
-- [ ] Documentation updated
+- [x] Documentation updated
 
 ## Success Metrics
 
