@@ -88,7 +88,8 @@ do_status() {
 
     cd "$CATALOG_DIR"
 
-    if git diff --quiet && git diff --staged --quiet; then
+    # Check for any changes (tracked and untracked)
+    if [[ -z "$(git status --porcelain)" ]]; then
         log "No uncommitted changes"
     else
         warn "Uncommitted changes:"
@@ -123,14 +124,14 @@ do_push() {
 
     cd "$CATALOG_DIR"
 
+    # Stage all changes first (to include untracked files)
+    git add -A
+
     # Check for changes
-    if git diff --quiet && git diff --staged --quiet; then
+    if git diff --staged --quiet; then
         log "No changes to commit"
         exit 0
     fi
-
-    # Stage all changes
-    git add -A
 
     # Show what changed
     echo ""

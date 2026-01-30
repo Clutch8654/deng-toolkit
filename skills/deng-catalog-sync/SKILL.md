@@ -5,36 +5,44 @@ description: Sync the data catalog to a git repository for version control and t
 
 # Data Catalog Sync
 
-Git operations for the data catalog at `~/.deng-toolkit/catalog/`.
-
-The catalog directory IS the git repository - no intermediate sync needed.
+Git operations for the data catalog. Location configured in `~/.deng-toolkit/config.yaml`.
 
 ## Usage
 
 ```
-/deng-catalog-sync              # Show status (git status)
+/deng-catalog-sync              # Show status and configuration
 /deng-catalog-sync --push       # Commit and push changes
 /deng-catalog-sync --pull       # Pull latest from remote
+/deng-catalog-sync --full       # Pull, then commit and push
 /deng-catalog-sync --init       # Initialize as git repo
 ```
 
+## Configuration
+
+Edit `~/.deng-toolkit/config.yaml`:
+
+```yaml
+catalog_dir: ~/data-catalog
+catalog_remote: git@github.com:YourOrg/data-catalog.git
+```
+
+Or override with environment variable: `DENG_CATALOG_DIR=/path/to/catalog`
+
 ## First-Time Setup
 
-```bash
-# Initialize the catalog as a git repo
-~/.deng-toolkit/scripts/catalog_sync.sh --init
+**Option A: Initialize new catalog**
 
-# Add your remote
-cd ~/.deng-toolkit/catalog
-git remote add origin <your-catalog-repo-url>
+```bash
+~/.deng-toolkit/scripts/catalog_sync.sh --init
+# If catalog_remote is configured, remote is added automatically
 git push -u origin main
 ```
 
-Or clone an existing catalog:
+**Option B: Clone existing team catalog**
 
 ```bash
-rm -rf ~/.deng-toolkit/catalog
-git clone <your-catalog-repo-url> ~/.deng-toolkit/catalog
+git clone <your-catalog-repo-url> ~/data-catalog
+# Update config.yaml if using different path
 ```
 
 ## Execution
@@ -45,6 +53,7 @@ Run the script directly:
 ~/.deng-toolkit/scripts/catalog_sync.sh --status
 ~/.deng-toolkit/scripts/catalog_sync.sh --push
 ~/.deng-toolkit/scripts/catalog_sync.sh --pull
+~/.deng-toolkit/scripts/catalog_sync.sh --full
 ```
 
 ## Catalog Files
