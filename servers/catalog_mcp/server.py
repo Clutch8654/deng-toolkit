@@ -3,6 +3,7 @@
 All tools in one file for simplicity. Reuses logic patterns from
 scripts/catalog_query.py but optimized for MCP tool interface.
 """
+
 import asyncio
 import json
 import os
@@ -14,10 +15,12 @@ from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp.types import Tool, TextContent
 
+# Add scripts directory to path for config import
+import sys
 
-def get_catalog_dir() -> Path:
-    """Get catalog directory with late binding for testability."""
-    return Path(os.environ.get("DENG_CATALOG_DIR", str(Path.home() / ".ds_catalog")))
+sys.path.insert(0, str(Path(__file__).parent.parent.parent / "scripts"))
+
+from config import get_catalog_dir
 
 
 # --- Tool Implementations ---
@@ -42,25 +45,53 @@ def search_catalog(keywords: list[str], top_n: int = 20) -> dict:
     db_match = pl.lit(0)
 
     for kw in keywords:
-        table_match = table_match + pl.col("table_name").str.to_lowercase().str.contains(kw).cast(pl.Int32) * 3
-        column_match = column_match + pl.col("column_name").str.to_lowercase().str.contains(kw).cast(pl.Int32) * 2
-        db_match = db_match + pl.col("database").str.to_lowercase().str.contains(kw).cast(pl.Int32) * 1
+        table_match = (
+            table_match
+            + pl.col("table_name").str.to_lowercase().str.contains(kw).cast(pl.Int32)
+            * 3
+        )
+        column_match = (
+            column_match
+            + pl.col("column_name").str.to_lowercase().str.contains(kw).cast(pl.Int32)
+            * 2
+        )
+        db_match = (
+            db_match
+            + pl.col("database").str.to_lowercase().str.contains(kw).cast(pl.Int32) * 1
+        )
 
-    df_scored = df.with_columns([
-        (table_match + column_match + db_match).alias("keyword_score"),
-        (pl.col("is_primary_key").cast(pl.Int32) * 2).alias("pk_bonus"),
-        (pl.col("is_foreign_key").cast(pl.Int32) * 1).alias("fk_bonus"),
-    ]).with_columns([
-        (pl.col("keyword_score") + pl.col("pk_bonus") + pl.col("fk_bonus")).alias("relevance"),
-    ])
+    df_scored = df.with_columns(
+        [
+            (table_match + column_match + db_match).alias("keyword_score"),
+            (pl.col("is_primary_key").cast(pl.Int32) * 2).alias("pk_bonus"),
+            (pl.col("is_foreign_key").cast(pl.Int32) * 1).alias("fk_bonus"),
+        ]
+    ).with_columns(
+        [
+            (pl.col("keyword_score") + pl.col("pk_bonus") + pl.col("fk_bonus")).alias(
+                "relevance"
+            ),
+        ]
+    )
 
     results = (
         df_scored.filter(pl.col("keyword_score") > 0)
         .sort(["relevance", "row_count_estimate"], descending=[True, True])
         .head(top_n)
-        .select(["database", "schema", "table_name", "column_name", "data_type",
-                 "is_primary_key", "is_foreign_key", "fk_references",
-                 "row_count_estimate", "relevance"])
+        .select(
+            [
+                "database",
+                "schema",
+                "table_name",
+                "column_name",
+                "data_type",
+                "is_primary_key",
+                "is_foreign_key",
+                "fk_references",
+                "row_count_estimate",
+                "relevance",
+            ]
+        )
     )
 
     matches = results.to_dicts()
@@ -76,9 +107,9 @@ def get_table_details(database: str, schema: str, table_name: str) -> dict:
 
     df = pl.read_parquet(metadata_path)
     table_df = df.filter(
-        (pl.col("database") == database) &
-        (pl.col("schema") == schema) &
-        (pl.col("table_name") == table_name)
+        (pl.col("database") == database)
+        & (pl.col("schema") == schema)
+        & (pl.col("table_name") == table_name)
     )
 
     if table_df.is_empty():
@@ -107,8 +138,7 @@ def find_join_paths(table_name: str) -> dict:
     # Outbound: FKs from this table to others
     outbound = (
         df.filter(
-            (pl.col("table_name") == table_name) &
-            (pl.col("is_foreign_key") == True)
+            (pl.col("table_name") == table_name) & (pl.col("is_foreign_key") == True)
         )
         .select(["column_name", "fk_references"])
         .to_dicts()
@@ -116,9 +146,7 @@ def find_join_paths(table_name: str) -> dict:
 
     # Inbound: FKs from other tables to this one
     inbound = (
-        df.filter(
-            pl.col("fk_references").str.contains(f"{table_name}\\.")
-        )
+        df.filter(pl.col("fk_references").str.contains(f"{table_name}\\."))
         .select(["table_name", "column_name", "fk_references"])
         .to_dicts()
     )

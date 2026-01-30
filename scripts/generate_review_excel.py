@@ -31,7 +31,9 @@ try:
 except ImportError:
     OPENPYXL_AVAILABLE = False
 
-CATALOG_DIR = Path(os.environ.get("DENG_CATALOG_DIR", str(Path.home() / ".ds_catalog")))
+from config import get_catalog_dir
+
+CATALOG_DIR = get_catalog_dir()
 REVIEWS_DIR = CATALOG_DIR / "reviews"
 PROCEDURES_PATH = CATALOG_DIR / "procedures.parquet"
 EXECUTION_STATS_PATH = CATALOG_DIR / "execution_stats.parquet"

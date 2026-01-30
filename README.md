@@ -42,17 +42,26 @@ The plugin exposes an MCP server with these tools:
 
 ## Configuration
 
+### Setup Configuration
+
+During installation, `setup.sh` prompts for catalog location and creates `~/.deng-toolkit/config.yaml`:
+
+```yaml
+# deng-toolkit configuration
+catalog_dir: ~/data-catalog          # Where the catalog lives
+catalog_remote: git@github.com:...   # Git remote for team sharing (optional)
+```
+
 ### Data Catalog Location
 
-By default, catalog data is stored in `~/.ds_catalog/`. Override with:
+By default, catalog data is stored in `~/data-catalog/`. Configure via:
 
-```bash
-export DENG_CATALOG_DIR=/path/to/custom/catalog
-```
+1. **config.yaml** (recommended): Edit `~/.deng-toolkit/config.yaml`
+2. **Environment variable** (override): `export DENG_CATALOG_DIR=/path/to/catalog`
 
 ### Database Targets
 
-Create `~/.ds_catalog/targets.toml`:
+Create `~/data-catalog/targets.toml`:
 
 ```toml
 # Example: SQL Server target
@@ -77,49 +86,51 @@ export OMS_PASSWORD=your_password
 Copy the template and customize:
 
 ```bash
-cp ~/.deng-toolkit/templates/ontology_config.toml.example ~/.ds_catalog/ontology_config.toml
+cp ~/.deng-toolkit/templates/ontology_config.toml.example ~/data-catalog/ontology_config.toml
 ```
 
 ## Directory Structure
 
 ```
-~/.deng-toolkit/
+~/.deng-toolkit/                    # Plugin (tooling)
 ├── .claude-plugin/
-│   └── plugin.json         # Plugin manifest
-├── .mcp.json               # MCP server configuration
-├── commands/               # Slash command definitions
-│   ├── deng-catalog-refresh.md
-│   ├── deng-find-data.md
-│   ├── deng-build-ontology.md
-│   ├── deng-analyze-procedures.md
-│   ├── deng-catalog-status.md
-│   └── deng-catalog-sync.md
-├── servers/
-│   └── catalog_mcp/        # MCP server
-│       ├── server.py       # 4 MCP tools
-│       └── pyproject.toml
-├── hooks/
-│   ├── hooks.json          # PostToolUse hooks
-│   └── scripts/            # Hook scripts
-├── scripts/                # Python scripts for data operations
+│   └── plugin.json                 # Plugin manifest
+├── .mcp.json                       # MCP server configuration
+├── config.yaml                     # Catalog location config
+├── commands/                       # Slash command definitions
+├── servers/catalog_mcp/            # MCP server (4 tools)
+├── hooks/                          # PostToolUse hooks
+├── scripts/                        # Python scripts
+│   ├── config.py                   # Config loading module
 │   ├── catalog_refresh.py
 │   ├── catalog_query.py
-│   ├── build_ontology.py
-│   └── analyze_procedures.py
-├── templates/              # Configuration templates
-├── setup.sh                # Installation script
+│   ├── catalog_sync.sh
+│   ├── migrate_catalog.sh
+│   └── ...
+├── templates/                      # Configuration templates
+├── setup.sh                        # Installation script
 └── README.md
+
+~/data-catalog/                     # Data catalog (separate git repo)
+├── metadata.parquet                # Schema metadata
+├── ontology.jsonld                 # Knowledge graph
+├── procedures.parquet              # SQL patterns
+├── targets.toml                    # Database connection config
+└── .git/                           # Team-shared via git
 ```
 
 ## Team Sharing
 
-The data catalog at `~/.ds_catalog/` is initialized as a git repository during setup. To share with your team:
+The toolkit and catalog are separate git repositories:
+- **Toolkit** (`~/.deng-toolkit/`): Shared via GitHub, same for everyone
+- **Catalog** (`~/data-catalog/`): Team-specific, configured during setup
 
 ### First-Time Setup (Team Lead)
 
 ```bash
-cd ~/.ds_catalog
-git remote add origin <your-repo-url>
+# Create team catalog repo on GitHub, then:
+cd ~/data-catalog
+git remote add origin <your-catalog-repo-url>
 git add -A
 git commit -m "Initial catalog"
 git push -u origin main
@@ -128,20 +139,34 @@ git push -u origin main
 ### Joining the Team
 
 ```bash
-# Clone the shared catalog
-git clone <your-repo-url> ~/.ds_catalog
-
 # Install the toolkit
 git clone https://github.com/Clutch8654/deng-toolkit.git ~/.deng-toolkit
 ~/.deng-toolkit/setup.sh
+
+# During setup, enter the team's catalog remote URL
+# Or clone manually first:
+git clone <your-catalog-repo-url> ~/data-catalog
 ```
 
 ### Syncing Changes
 
-Use the `/deng-catalog-sync` command or manually:
+```bash
+# Check current configuration
+/deng-catalog-sync --status
+
+# Pull latest from team
+/deng-catalog-sync --pull
+
+# Full sync: pull, commit local changes, push
+/deng-catalog-sync --full
+```
+
+### Migrating Existing Catalogs
+
+If you have an existing catalog in an old location:
 
 ```bash
-cd ~/.ds_catalog && git pull && git add -A && git commit -m "Update" && git push
+~/.deng-toolkit/scripts/migrate_catalog.sh
 ```
 
 ## Workflow
@@ -162,7 +187,7 @@ cd ~/.ds_catalog && git pull && git add -A && git commit -m "Update" && git push
 claude plugins remove deng-toolkit
 ```
 
-The data catalog at `~/.ds_catalog/` is preserved.
+The data catalog (default: `~/data-catalog/`) is preserved.
 
 ## License
 

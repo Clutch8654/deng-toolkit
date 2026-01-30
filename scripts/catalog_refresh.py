@@ -55,8 +55,9 @@ SCRIPTS_DIR = Path(__file__).parent
 sys.path.insert(0, str(SCRIPTS_DIR))
 
 from adapters.sqlserver import SQLServerAdapter, get_accessible_databases
+from config import get_catalog_dir
 
-CATALOG_DIR = Path(os.environ.get("DENG_CATALOG_DIR", str(Path.home() / ".ds_catalog")))
+CATALOG_DIR = get_catalog_dir()
 METADATA_PATH = CATALOG_DIR / "metadata.parquet"
 LAST_SCAN_PATH = CATALOG_DIR / "last_scan.json"
 TARGETS_PATH = CATALOG_DIR / "targets.toml"
